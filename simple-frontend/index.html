@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microservice Demo</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 40px; border-radius: 20px; max-width: 900px; margin: 0 auto; }
+        .service { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 12px; border-left: 4px solid #4285f4; }
+        button { background: #4285f4; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; margin: 5px; }
+        button:hover { background: #3367d6; }
+        .result { background: #e8f5e8; padding: 15px; margin: 15px 0; border-radius: 8px; font-family: monospace; font-size: 0.9em; }
+        h1 { color: #333; text-align: center; }
+        h3 { color: #4285f4; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Microservice Architecture Demo</h1>
+        <p style="text-align: center; color: #666;">Frontend communicating with 3 microservices</p>
+        
+        <div class="service">
+            <h3>🏠 Main Backend (Port 4000)</h3>
+            <button onclick="testMainBackend()">Test Health</button>
+            <button onclick="testPublicAPI()">Test Public API</button>
+            <button onclick="testAuthAPI()">Test Protected API (No Auth)</button>
+            <div id="main-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="service">
+            <h3>📈 Analytics Microservice (Port 4001)</h3>
+            <button onclick="testAnalytics()">Track Event</button>
+            <button onclick="testAnalyticsHealth()">Check Health</button>
+            <div id="analytics-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="service">
+            <h3>🔔 Notifications Microservice (Port 4002)</h3>
+            <button onclick="testNotifications()">Send Notification</button>
+            <button onclick="testWebSocket()">Test WebSocket</button>
+            <button onclick="testNotificationsHealth()">Check Health</button>
+            <div id="notifications-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+
+        async function testMainBackend() {
+            try {
+                const response = await axios.get('http://localhost:4000/health');
+                showResult('main-result', response.data);
+            } catch (error) {
+                showResult('main-result', { error: error.message });
+            }
+        }
+
+        async function testPublicAPI() {
+            try {
+                const response = await axios.get('http://localhost:4000/api/public/health');
+                showResult('main-result', response.data);
+            } catch (error) {
+                showResult('main-result', { error: error.message });
+            }
+        }
+
+        async function testAuthAPI() {
+            try {
+                const response = await axios.get('http://localhost:4000/api/profile');
+                showResult('main-result', response.data);
+            } catch (error) {
+                showResult('main-result', { error: 'Authentication required (Expected!)' });
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await axios.post('http://localhost:4001/analytics/track', {
+                    type: 'frontend_test',
+                    userId: 'demo_user',
+                    details: { action: 'test_from_frontend', timestamp: new Date().toISOString() }
+                });
+                showResult('analytics-result', response.data);
+            } catch (error) {
+                showResult('analytics-result', { error: error.message });
+            }
+        }
+
+        async function testAnalyticsHealth() {
+            try {
+                const response = await axios.get('http://localhost:4001/health');
+                showResult('analytics-result', response.data);
+            } catch (error) {
+                showResult('analytics-result', { error: error.message });
+            }
+        }
+
+        async function testNotifications() {
+            try {
+                const response = await axios.post('http://localhost:4002/notifications/send', {
+                    userId: 'demo_user',
+                    type: 'frontend_test',
+                    title: 'Frontend Test',
+                    message: 'Notification sent from HTML frontend!',
+                    priority: 'normal'
+                });
+                showResult('notifications-result', response.data);
+            } catch (error) {
+                showResult('notifications-result', { error: error.message });
+            }
+        }
+
+        async function testWebSocket() {
+            try {
+                const response = await axios.post('http://localhost:4002/websocket/test', {
+                    message: 'WebSocket test from HTML frontend!'
+                });
+                showResult('notifications-result', response.data);
+            } catch (error) {
+                showResult('notifications-result', { error: error.message });
+            }
+        }
+
+        async function testNotificationsHealth() {
+            try {
+                const response = await axios.get('http://localhost:4002/health');
+                showResult('notifications-result', response.data);
+            } catch (error) {
+                showResult('notifications-result', { error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>
